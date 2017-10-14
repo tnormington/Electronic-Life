@@ -94,7 +94,7 @@ var directions = exports.directions = {
 
 var directionNames = exports.directionNames = "n ne e se s sw w nw".split(" ");
 
-var plan = exports.plan = ["############################", "#      #    #      o      ##", "#                          #", "#          #####           #", "##         #   #    ##     #", "###           ##     #     #", "#           ###      #     #", "#   ####                   #", "#   ##       o             #", "# o  #         o       ### #", "#    #                     #", "############################"];
+var plan = exports.plan = ["############################", "#      #    #      o      ##", "#                          #", "#     ~    #####           #", "##         #   #    ##     #", "###           ## o   #     #", "#           ###      #     #", "#   ####                   #", "#   ##       o        ~    #", "# o  #         o       ### #", "#    #                     #", "############################"];
 
 /***/ }),
 /* 1 */
@@ -144,6 +144,10 @@ Object.defineProperty(exports, "__esModule", {
 exports.randomElement = randomElement;
 exports.charFromElement = charFromElement;
 exports.elementFromChar = elementFromChar;
+exports.dirPlus = dirPlus;
+
+var _Constants = __webpack_require__(0);
+
 function randomElement(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -157,6 +161,11 @@ function elementFromChar(legend, ch) {
   var element = new legend[ch]();
   element.originChar = ch;
   return element;
+}
+
+function dirPlus(dir, n) {
+  var index = _Constants.directionNames.indexOf(dir);
+  return _Constants.directionNames[(index + n + 8) % 8];
 }
 
 /***/ }),
@@ -242,6 +251,22 @@ var _BouncingCritter = __webpack_require__(5);
 
 var _BouncingCritter2 = _interopRequireDefault(_BouncingCritter);
 
+var _Plant = __webpack_require__(11);
+
+var _Plant2 = _interopRequireDefault(_Plant);
+
+var _PlantEater = __webpack_require__(12);
+
+var _PlantEater2 = _interopRequireDefault(_PlantEater);
+
+var _Tiger = __webpack_require__(14);
+
+var _Tiger2 = _interopRequireDefault(_Tiger);
+
+var _SmartPlantEater = __webpack_require__(13);
+
+var _SmartPlantEater2 = _interopRequireDefault(_SmartPlantEater);
+
 var _Wall = __webpack_require__(6);
 
 var _Wall2 = _interopRequireDefault(_Wall);
@@ -250,20 +275,32 @@ var _World = __webpack_require__(7);
 
 var _World2 = _interopRequireDefault(_World);
 
+var _LifelikeWorld = __webpack_require__(10);
+
+var _LifelikeWorld2 = _interopRequireDefault(_LifelikeWorld);
+
+var _WallFollower = __webpack_require__(9);
+
+var _WallFollower2 = _interopRequireDefault(_WallFollower);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var world = new _World2.default(_Constants.plan, { "#": _Wall2.default, "o": _BouncingCritter2.default });
+var world = new _World2.default(_Constants.plan, { "#": _Wall2.default, "o": _BouncingCritter2.default, "~": _WallFollower2.default });
+var valley = new _LifelikeWorld2.default(["####################################################", "#                 ####         ****              ###", "#   *  @  ##                 ########       OO    ##", "#   *    ##        O O                 ****       *#", "#       ##*                        ##########     *#", "#      ##***  *         ****                     **#", "#* **  #  *  ***      #########                  **#", "#* **  #      *               #   *              **#", "#     ##              #   O   #  ***          ######", "#*            @       #       #   *        O  #    #", "#*                    #  ######                 ** #", "###          ****          ***                  ** #", "#       O                        @         O       #", "#   *     ##  ##  ##  ##               ###      *  #", "#   **         #              *       #####  O     #", "##  **  O   O  #  #    ***  ***        ###      ** #", "###               #   *****                    ****#", "####################################################"], { "#": _Wall2.default,
+    "@": _Tiger2.default,
+    "O": _SmartPlantEater2.default, // from previous exercise
+    "*": _Plant2.default });
 var worldElement = document.querySelector('#world');
 
-function updateWorldElement() {
-    worldElement.innerHTML = world.toString();
+function updateWorldElement(w) {
+    worldElement.innerHTML = w.toString();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     window.setInterval(function () {
-        world.turn();
-        updateWorldElement();
-    }, 100);
+        valley.turn();
+        updateWorldElement(valley);
+    }, 300);
 });
 
 /***/ }),
@@ -493,6 +530,294 @@ var View = function () {
 }();
 
 exports.default = View;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _util = __webpack_require__(2);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var WallFollower = function () {
+    function WallFollower() {
+        _classCallCheck(this, WallFollower);
+
+        this.dir = 's';
+    }
+
+    _createClass(WallFollower, [{
+        key: 'act',
+        value: function act(view) {
+            var start = this.dir;
+            if (view.look((0, _util.dirPlus)(this.dir, -3)) != ' ') start = this.dir = (0, _util.dirPlus)(this.dir, -2);
+            while (view.look(this.dir) != " ") {
+                this.dir = (0, _util.dirPlus)(this.dir, 1);
+                if (this.dir == start) break;
+            }
+            return { type: "move", direction: this.dir };
+        }
+    }]);
+
+    return WallFollower;
+}();
+
+exports.default = WallFollower;
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _World2 = __webpack_require__(7);
+
+var _World3 = _interopRequireDefault(_World2);
+
+var _View = __webpack_require__(8);
+
+var _View2 = _interopRequireDefault(_View);
+
+var _util = __webpack_require__(2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var actionTypes = Object.create(null);
+
+actionTypes.grow = function (critter) {
+  critter.energy += 0.5;
+  return true;
+};
+
+actionTypes.move = function (critter, vector, action) {
+  var dest = this.checkDestination(action, vector);
+  if (dest == null || critter.energy <= 1 || this.grid.get(dest) != null) return false;
+  critter.energy -= 1;
+  this.grid.set(vector, null);
+  this.grid.set(dest, critter);
+  return true;
+};
+
+actionTypes.eat = function (critter, vector, action) {
+  var dest = this.checkDestination(action, vector);
+  var atDest = dest != null && this.grid.get(dest);
+  if (!atDest || atDest.energy == null) return false;
+  critter.energy += atDest.energy;
+  this.grid.set(dest, null);
+  return true;
+};
+
+actionTypes.reproduce = function (critter, vector, action) {
+  var baby = (0, _util.elementFromChar)(this.legend, critter.originChar);
+  var dest = this.checkDestination(action, vector);
+  if (dest == null || critter.energy <= 2 * baby.energy || this.grid.get(dest) != null) return false;
+  critter.energy -= 2 * baby.energy;
+  this.grid.set(dest, baby);
+  return true;
+};
+
+var LifelikeWorld = function (_World) {
+  _inherits(LifelikeWorld, _World);
+
+  function LifelikeWorld() {
+    _classCallCheck(this, LifelikeWorld);
+
+    return _possibleConstructorReturn(this, (LifelikeWorld.__proto__ || Object.getPrototypeOf(LifelikeWorld)).apply(this, arguments));
+  }
+
+  _createClass(LifelikeWorld, [{
+    key: 'letAct',
+    value: function letAct(critter, vector) {
+      var action = critter.act(new _View2.default(this, vector));
+      var handled = action && action.type in actionTypes && actionTypes[action.type].call(this, critter, vector, action);
+
+      if (!handled) {
+        critter.energy -= 0.2;
+        if (critter.energy <= 0) this.grid.set(vector, null);
+      }
+    }
+  }]);
+
+  return LifelikeWorld;
+}(_World3.default);
+
+exports.default = LifelikeWorld;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Plant = function () {
+    function Plant() {
+        _classCallCheck(this, Plant);
+
+        this.energy = 3 + Math.random() * 4;
+    }
+
+    _createClass(Plant, [{
+        key: "act",
+        value: function act(view) {
+            if (this.energy > 15) {
+                var space = view.find(" ");
+                if (space) return { type: "reproduce", direction: space };
+            }
+            if (this.energy < 20) return { type: "grow" };
+        }
+    }]);
+
+    return Plant;
+}();
+
+exports.default = Plant;
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var PlantEater = function () {
+    function PlantEater() {
+        _classCallCheck(this, PlantEater);
+
+        this.energy = 20;
+    }
+
+    _createClass(PlantEater, [{
+        key: "act",
+        value: function act(view) {
+            var space = view.find(" ");
+            if (this.energy > 60 && space) return { type: "reproduce", direction: space };
+            var plant = view.find("*");
+            if (plant) return { type: "eat", direction: plant };
+            if (space) return { type: "move", direction: space };
+        }
+    }]);
+
+    return PlantEater;
+}();
+
+exports.default = PlantEater;
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SmartPlantEater = function () {
+    function SmartPlantEater() {
+        _classCallCheck(this, SmartPlantEater);
+
+        this.energy = 20;
+    }
+
+    _createClass(SmartPlantEater, [{
+        key: "act",
+        value: function act(view) {
+            var space = view.find(" ");
+            if (this.energy > 60 && space) return { type: "reproduce", direction: space };
+            var plant = view.find("*");
+            if (plant) return { type: "eat", direction: plant };
+            if (space) return { type: "move", direction: space };
+        }
+    }]);
+
+    return SmartPlantEater;
+}();
+
+exports.default = SmartPlantEater;
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Tiger = function () {
+    function Tiger() {
+        _classCallCheck(this, Tiger);
+
+        this.energy = 50;
+    }
+
+    _createClass(Tiger, [{
+        key: "act",
+        value: function act(view) {
+            var space = view.find(" ");
+            if (this.energy > 150 && space) return { type: "reproduce", direction: space };
+            var prey = view.find("O");
+            if (prey) return { type: "eat", direction: prey };
+            var plant = view.find("*");
+            if (plant) return { type: "eat", direction: plant };
+            if (space) return { type: "move", direction: space };
+        }
+    }]);
+
+    return Tiger;
+}();
+
+exports.default = Tiger;
 
 /***/ })
 /******/ ]);
